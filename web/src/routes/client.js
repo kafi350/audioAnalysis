@@ -49,18 +49,16 @@ const fetchWithHeader = (url, options) => {
 		.catch(errorHandler);
 };
 
-const Prayers ={
-    getPrayersforToday: (lattitude, longitude, currentDate) => 
-    fetchWithHeader(`${BASE_URL}/prayertime`, {
+const AudioAnalysis ={
+    upload: (formData) => 
+    fetchWithHeader(`${BASE_URL}/audio`, {
         method: 'POST',
         body: JSON.stringify({
-            lattitude: lattitude,
-            longitude: longitude,
-            current_time: currentDate
+            formData : formData
       }),
     }),
 };
 
 export default {
-    Prayers
+    AudioAnalysis
 };
