@@ -1,10 +1,29 @@
 <script>
-    const audioFile = '';
+    import axios from 'axios'; // Make sure to install axios using npm install axios
 
-    function handleFileChange(event) {
+    let audioFile = '';
+
+    async function handleFileChange(event) {
         audioFile = event.target.files[0];
         console.log('File selected:', audioFile.name);
-        // Optional: Code to send this file to the server
+
+        // Create a FormData object
+        let formData = new FormData();
+
+        // Append the file to the FormData object
+        formData.append('file', audioFile);
+
+        // Send the file to the server
+        try {
+            const response = await axios.post('/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            console.log('File uploaded successfully:', response.data);
+        } catch (error) {
+            console.error('Error uploading file:', error);
+        }
     }
 </script>
 
