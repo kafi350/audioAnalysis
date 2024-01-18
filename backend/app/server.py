@@ -5,7 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.prayertime import handler as prayertime_handler
+from app.audio import handler as audio_handler
 from sqlmodel import Session, SQLModel, create_engine
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -40,7 +40,7 @@ api_router = APIRouter(
     tags=["api"],
 )
 
-api_router.include_router(prayertime_handler.router)
+api_router.include_router(audio_handler.router)
 
 app.include_router(api_router)
 
