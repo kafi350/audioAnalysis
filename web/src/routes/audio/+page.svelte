@@ -10,12 +10,11 @@
         console.log('File selected:', audioFile.name);
 
             // Create a FormData object
-        let formData = new FormData();
-
-            // Append the file to the FormData object
-        formData.append('file', audioFile);
+        var formdata = new FormData();
+        formdata.append("file", event.target.files[0], event.target.files[0].name);
+        formdata.append("taken_at", new Date().toISOString())
         
-        client.AudioAnalysis.upload(formData)
+        client.AudioAnalysis.upload(formdata)
             .then(response => {
                 console.log(response);
             })
