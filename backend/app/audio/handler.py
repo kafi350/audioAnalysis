@@ -16,4 +16,5 @@ def get_audio_info():
 def upload_audio_api(file: UploadFile = File(...),
     taken_at: str = Form(...)):
     segmented_audios = segment_audio_file(file, taken_at)
+    print(segmented_audios)
     print(len(segmented_audios))
