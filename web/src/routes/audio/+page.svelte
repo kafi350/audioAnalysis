@@ -7,6 +7,7 @@
     let audioSrc = null;
 
     function handleFileChange(event) {
+        audioSegments = [];
         audioFile = event.target.files[0];
         console.log('File selected:', audioFile.name);
         audioSrc = URL.createObjectURL(audioFile);
@@ -49,15 +50,23 @@
             </audio>
         {/if}
         <button on:click={handleUpload}>Upload</button>
-        {#each audioSegments as audioSrc (audioSrc)}
-        <audio controls>
-            <source src={audioSrc} type="audio/wav">
-            Your browser does not support the audio element.
-        </audio>
-        {/each}
-
-
+        <section>
+            {#if audioSegments.length > 0}
+                <h2>Segments</h2>
+                <p>Click on the audio to play</p>
+                
+                {#each audioSegments as audioSrc (audioSrc)}
+                    <audio controls>
+                        <source src={audioSrc} type="audio/wav">
+                        Your browser does not support the audio element.
+                    </audio>
+                {/each}
+            {/if}
+        </section>
         
+
+
+
     </main>
 
 <style>
