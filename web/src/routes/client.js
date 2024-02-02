@@ -50,11 +50,14 @@ const fetchWithHeader = (url, options) => {
 };
 
 const AudioAnalysis ={
-upload: (formdata) => 
-	fetch(`${BASE_URL}/audio/upload`, {
-		method: 'POST',
-		body: formdata,
-	}),
+	upload: (formdata) => 
+		fetch(`${BASE_URL}/audio/upload`, {
+			method: 'POST',
+			body: formdata,
+			headers: {
+                Authorization: 'Bearer ' + get(token),
+            },
+		}),
 };
 
 export default {

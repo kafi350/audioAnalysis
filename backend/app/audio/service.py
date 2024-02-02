@@ -4,16 +4,14 @@ from pydub.silence import split_on_silence
 
 #this will create chunks of audio if audio is longer than 40 seconds
 def create_audio_chunks(file: UploadFile, taken_at: str):
-    print(file.filename)
     audio = AudioSegment.from_file(file.file, format=file.filename.split('.')[-1])
     length_ms = len(audio)
-
-
+    print(f"Audio length: {length_ms} ms")
     if length_ms > 40000:
         # Divide audio into 40-second chunks
         chunks = [audio[i:i+40000] for i in range(0, length_ms, 40000)]
         segments = segment_audio_file(chunks)
-        return chunks
+        return segments
 
     segments = segment_audio_file([audio])
     
@@ -28,4 +26,5 @@ def segment_audio_file(chunks):
         # Parameters: audio segment, minimum silence length in ms, silence threshold in dB
         chunk_segments = split_on_silence(chunk, min_silence_len=500, silence_thresh=-40)
         segments.extend(chunk_segments)
+        
     return segments
