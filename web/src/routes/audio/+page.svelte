@@ -62,6 +62,8 @@
                     </audio>
                 {/each}
             {/if}
+
+            <button on:click={() => {window.location.href = '/audio/analysis'}}>Classification</button>
         </section>
         
 
