@@ -6,6 +6,7 @@
     let audioFile = null;
     let audioSegments = [];
     let audioSrc = null;
+    let classification = {};
 
     function handleFileChange(event) {
         audioSegments = [];
@@ -65,9 +66,9 @@
             formData.append("file", file, file.name);
             console.log('Classifying audio:', formData.get('file'));
             client.AudioAnalysis.classify(formData)
-                .then(response => response.json())
                 .then(data => {
                     console.log(data);
+                    classification = data.classification;
                 })
                 .catch(error => {
                     console.log(error);
@@ -108,7 +109,7 @@
                         Your browser does not support the audio element.
                     </audio>
                     <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleClassification(audioSrc)}>Classification</button>
-
+                    <p>The classification result: Gender - {classification}, Emotion - {classification}</p>
                 </div>
                 {/each}
             {/if}

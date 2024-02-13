@@ -1,4 +1,6 @@
 from app.audio.helper import extract_feature
+import random
+
 # from tensorflow.keras.models import load_model
 import numpy as np
 from fastapi import UploadFile
@@ -37,22 +39,37 @@ def audio_classification(audio_file):
     return "Positive" # or "Negative" or "Neutral" depending on the classification
 
 
+def predict_gender_emotion():
+    genders = ['male', 'female']
+    emotions = ['happy', 'sad', 'angry', 'neutral', 'surprised', 'scared', 'disgusted', 'contemptuous']
+
+    predicted_gender = random.choice(genders)
+    predicted_emotion = random.choice(emotions)
+    
+    return{
+        "gender": predicted_gender,
+        "emotion": predicted_emotion
+    }
+
+
 def classify_audio_class(file: UploadFile):
     audio = AudioSegment.from_file(file.file, format=file.filename.split('.')[-1])
     length_ms = len(audio)
     # Assuming 'pred_fea' is your input data
-    pred_fea = extract_feature(file.file)
+    # pred_fea = extract_feature(file.file)
     # model = load_model('path_to_your_model.h5')
 
     # Ensure the input shape matches your model's input shape
     # If your model expects a 4D input (batch_size, height, width, channels), 
     # you might need to expand the dimensions of your input
-    pred_fea = np.expand_dims(pred_fea, axis=0)
+    # pred_fea = np.expand_dims(pred_fea, axis=0)
 
-    # Use the model to make a prediction
-    pred_vec = model.predict(pred_fea)
+    # # Use the model to make a prediction
+    # pred_vec = model.predict(pred_fea)
 
-    # Get the predicted class
-    predicted_class = np.argmax(pred_vec, axis=-1)
-
-    print(f"Audio length: {length_ms} ms")
+    # # Get the predicted class
+    # predicted_class = np.argmax(pred_vec, axis=-1)
+    
+    predicted = predict_gender_emotion()
+    print(predicted)
+    return predicted
