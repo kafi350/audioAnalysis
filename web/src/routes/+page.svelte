@@ -1,6 +1,5 @@
 <script>
     import '../app.css';
-    import { navigate } from 'svelte-routing';
     
     function goToAudioSection() {
         navigate('/audio');

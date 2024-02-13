@@ -58,6 +58,22 @@ const AudioAnalysis ={
                 Authorization: 'Bearer ' + get(token),
             },
 		}),
+	classify: (formData) =>
+		fetch(`${BASE_URL}/audio/classify`, {
+			method: 'POST',
+			body: formData,
+			headers: {
+				Authorization: 'Bearer ' + get(token),
+			},
+		})
+		.then((response) => {
+			if (!response.ok) {
+				throw response;
+			}
+			serverError.set('');
+			return response.json();
+		})
+		.catch(errorHandler),	
 };
 
 export default {

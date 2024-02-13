@@ -2,7 +2,7 @@ import base64
 import io
 from datetime import datetime
 from app.audio.api_model import AudioRequest
-from app.audio.service import create_audio_chunks, segment_audio_file
+from app.audio.service import classify_audio_class, create_audio_chunks, segment_audio_file
 
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
 
@@ -27,3 +27,6 @@ def upload_audio_api(file: UploadFile = File(...),
         "segmented_audios": segmented_audios_base64,
     }
 
+@router.post("/classify", status_code=201)
+def classify_audio_api(file: UploadFile = File(...)):
+    classify_audio_class(file)
