@@ -108,6 +108,7 @@
                         <source src={audioSrc} type="audio/wav">
                         Your browser does not support the audio element.
                     </audio>
+                    <p>Audio Segments</p>
                     <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleClassification(audioSrc)}>Classification</button>
                     <p>The classification result: Gender - {classification}, Emotion - {classification}</p>
                 </div>
