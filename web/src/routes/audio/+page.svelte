@@ -102,13 +102,13 @@
                 <h2>Segments</h2>
                 <p>Click on the audio to play</p>
                 
-                {#each audioSegments as audioSrc (audioSrc)}
+                {#each audioSegments as audioSrc, i (audioSrc)}
                 <div class="columns-3 my-3">
                     <audio controls>
                         <source src={audioSrc} type="audio/wav">
                         Your browser does not support the audio element.
                     </audio>
-                    <p>Audio Segments</p>
+                    <p>Audio Segments {i + 1}</p>
                     <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleClassification(audioSrc)}>Classification</button>
                     <p>The classification result: Gender - {classification}, Emotion - {classification}</p>
                 </div>

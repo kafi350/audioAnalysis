@@ -15,3 +15,8 @@ format:
 run:
 	@echo "Running..."
 	@(. venv/bin/activate && poetry install && uvicorn app.server:app --reload)
+
+.PHONY: poetry-to-requirements
+poetry-to-requirements:
+	@echo "Generating requirements.txt..."
+	@(. venv/bin/activate && poetry export -f requirements.txt --output requirements.txt --without-hashes)

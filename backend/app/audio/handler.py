@@ -28,5 +28,5 @@ def upload_audio_api(file: UploadFile = File(...),
     }
 
 @router.post("/classify", status_code=201)
-def classify_audio_api(file: UploadFile = File(...)):
-    return classify_audio_class(file)
+async def classify_audio_api(file: UploadFile = File(...)):
+    return await classify_audio_class(file)

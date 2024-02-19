@@ -1,7 +1,10 @@
+import os
 from app.audio.helper import extract_feature
 import random
+import tempfile
 
-# from tensorflow.keras.models import load_model
+
+from tensorflow.keras.models import load_model
 import numpy as np
 from fastapi import UploadFile
 from pydub import AudioSegment
@@ -52,24 +55,38 @@ def predict_gender_emotion():
     }
 
 
-def classify_audio_class(file: UploadFile):
-    audio = AudioSegment.from_file(file.file, format=file.filename.split('.')[-1])
+async def classify_audio_class(file: UploadFile):
+    local_file_path = await save_file(file)   
+    # Now you can read the local file with pydub
+    audio = AudioSegment.from_file(local_file_path, format=file.filename.split('.')[-1])
     length_ms = len(audio)
-    # Assuming 'pred_fea' is your input data
-    # pred_fea = extract_feature(file.file)
-    # model = load_model('path_to_your_model.h5')
 
-    # Ensure the input shape matches your model's input shape
-    # If your model expects a 4D input (batch_size, height, width, channels), 
-    # you might need to expand the dimensions of your input
-    # pred_fea = np.expand_dims(pred_fea, axis=0)
+    features = extract_feature(local_file_path)
+    print(features)
 
-    # # Use the model to make a prediction
-    # pred_vec = model.predict(pred_fea)
+    # Load the model
+    audio_classification_model(features)
 
-    # # Get the predicted class
-    # predicted_class = np.argmax(pred_vec, axis=-1)
+
+    print(f"Audio length: {length_ms} ms")
+
+async def save_file(file: UploadFile):
+    local_file_path = os.path.join("uploads", file.filename)
+
+    # Save the uploaded file to the local file
+    data = await file.read()
+    with open(local_file_path, 'wb') as f:
+        f.write(data)
+    print(f"File saved to {local_file_path}")
+    return local_file_path
+
+
+def audio_classification_model(features):
+    model_path = "app/machine_models/audio_classify_v1.h5"
+    model = load_model(model_path)
+
+    pred_vector = np.argmax(model.predict(features), axis=-1)
+    print("The predicted class is:", pred_vector, '\n') 
     
-    predicted = predict_gender_emotion()
-    print(predicted)
-    return predicted
+
+    return np.array([0.5, 0.5]) # Dummy prediction for now
