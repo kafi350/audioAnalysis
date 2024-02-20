@@ -1,7 +1,9 @@
 import os
-from app.audio.helper import extract_feature, audio_classification_prediction_maping
+from app.audio.helper import extract_feature, audio_classification_prediction_maping, extract_feature_gender, get_features_gender_emotion
 import random
 import tempfile
+from app.audio.utils import create_model
+
 
 
 from tensorflow.keras.models import load_model
@@ -57,18 +59,18 @@ def predict_gender_emotion():
 
 async def classify_audio_class(file: UploadFile):
     local_file_path = await save_file(file)   
-    # Now you can read the local file with pydub
     audio = AudioSegment.from_file(local_file_path, format=file.filename.split('.')[-1])
-    length_ms = len(audio)
-
     features = extract_feature(local_file_path)
-    
-
-    # Load the model
     predicted_class = audio_classification_model(features)
     return {
         "class": predicted_class,
     }
+
+async def gender_detection(file: UploadFile):
+    local_file_path = await save_file(file)   
+    features = extract_feature_gender(local_file_path, mel=True).reshape(1, -1)
+    return gender_detection_model(features)
+   
     
 
 async def save_file(file: UploadFile):
@@ -90,3 +92,20 @@ def audio_classification_model(features):
     class_name = audio_classification_prediction_maping[pred_vector[0]]
  
     return class_name
+
+
+def gender_detection_model(features):
+    
+    model = create_model()
+    # load the saved/trained weights
+    model.load_weights("app/machine_models/model.h5")
+    
+    # predict the gender!
+    male_prob = model.predict(features)[0][0]
+    female_prob = 1 - male_prob
+    gender = "male" if male_prob > female_prob else "female"
+    
+    print("Result:", gender)
+    print(f"Probabilities:     Male: {male_prob*100:.2f}%    Female: {female_prob*100:.2f}%")
+
+    return { "prediction": gender, "Male": male_prob, "Female": female_prob}

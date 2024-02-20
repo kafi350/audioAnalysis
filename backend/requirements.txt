@@ -59,3 +59,7 @@ threadpoolctl==3.3.0 ; python_version >= "3.10" and python_version < "4.0"
 typing-extensions==4.9.0 ; python_version >= "3.10" and python_version < "4.0"
 urllib3==2.0.7 ; python_version >= "3.10" and python_version < "4.0"
 uvicorn==0.24.0.post1 ; python_version >= "3.10" and python_version < "4.0"
+tqdm==4.16.0 ; python_version >= "3.9" and python_version < "4.0"
+pandas==1.4.1 ; python_version >= "3.10" and python_version < "4.0"
+sklearn==0.0 ; python_version >= "3.10" and python_version < "4.0"
+

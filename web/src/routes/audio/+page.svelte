@@ -41,27 +41,15 @@
         }
 
         function handleClassification(audioSrc, i) {
-            console.log('Classifying audio:', audioSrc);
-            // Convert base64 to raw binary data held in a string
             let byteString = atob(audioSrc.split(',')[1]);
-
-            // Separate out the mime component
             let mimeString = audioSrc.split(',')[0].split(':')[1].split(';')[0];
-
-            // Write the bytes of the string to an ArrayBuffer
             let arrayBuffer = new ArrayBuffer(byteString.length);
             let uint8Array = new Uint8Array(arrayBuffer);
             for (let i = 0; i < byteString.length; i++) {
                 uint8Array[i] = byteString.charCodeAt(i);
             }
-
-            // Create a Blob from the ArrayBuffer
             let blob = new Blob([uint8Array], { type: mimeString });
-
-            // Create a File from the Blob
             let file = new File([blob], "audio.wav", { type: blob.type });
-
-            // Create a FormData object
             let formData = new FormData();
             formData.append("file", file, file.name);
             console.log('Classifying audio:', formData.get('file'));
@@ -69,6 +57,27 @@
                 .then(data => {
                     console.log(data);
                     classification[i] = data.class;
+                })
+                .catch(error => {
+                    console.log(error);
+                });
+        }
+
+        function handleGenderDetection(audioSrc, i){
+            let byteString = atob(audioSrc.split(',')[1]);
+            let mimeString = audioSrc.split(',')[0].split(':')[1].split(';')[0];
+            let arrayBuffer = new ArrayBuffer(byteString.length);
+            let uint8Array = new Uint8Array(arrayBuffer);
+            for (let i = 0; i < byteString.length; i++) {
+                uint8Array[i] = byteString.charCodeAt(i);
+            }
+            let blob = new Blob([uint8Array], { type: mimeString });
+            let file = new File([blob], "audio.wav", { type: blob.type });
+            let formData = new FormData();
+            formData.append("file", file, file.name);
+            client.AudioAnalysis.genderDetection(formData)
+                .then(data => {
+                    console.log(data);
                 })
                 .catch(error => {
                     console.log(error);
@@ -110,6 +119,7 @@
                     </audio>
                     <p>Audio Segments {i + 1}</p>
                     <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleClassification(audioSrc, i)}>Classification</button>
+                    <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleGenderDetection(audioSrc, i)}>Classification</button>
                     <p>The classification result: {classification[i]}</p>
                 </div>
                 {/each}

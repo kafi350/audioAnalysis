@@ -58,6 +58,14 @@ const AudioAnalysis ={
                 Authorization: 'Bearer ' + get(token),
             },
 		}),
+	genderDetection : (formData) =>
+		fetch(`${BASE_URL}/audio/genderdetection`, {
+			method: 'POST',
+			body: formData,
+			headers: {
+				Authorization: 'Bearer ' + get(token),
+			},
+		}),		
 	classify: (formData) =>
 		fetch(`${BASE_URL}/audio/classify`, {
 			method: 'POST',
