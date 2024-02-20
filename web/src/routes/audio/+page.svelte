@@ -6,7 +6,7 @@
     let audioFile = null;
     let audioSegments = [];
     let audioSrc = null;
-    let classification = {};
+    let classification = Array(audioSegments.length).fill('');
 
     function handleFileChange(event) {
         audioSegments = [];
@@ -40,7 +40,7 @@
                 });
         }
 
-        function handleClassification(audioSrc) {
+        function handleClassification(audioSrc, i) {
             console.log('Classifying audio:', audioSrc);
             // Convert base64 to raw binary data held in a string
             let byteString = atob(audioSrc.split(',')[1]);
@@ -68,7 +68,7 @@
             client.AudioAnalysis.classify(formData)
                 .then(data => {
                     console.log(data);
-                    classification = data.classification;
+                    classification[i] = data.class;
                 })
                 .catch(error => {
                     console.log(error);
@@ -109,8 +109,8 @@
                         Your browser does not support the audio element.
                     </audio>
                     <p>Audio Segments {i + 1}</p>
-                    <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleClassification(audioSrc)}>Classification</button>
-                    <p>The classification result: Gender - {classification}, Emotion - {classification}</p>
+                    <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleClassification(audioSrc, i)}>Classification</button>
+                    <p>The classification result: {classification[i]}</p>
                 </div>
                 {/each}
             {/if}

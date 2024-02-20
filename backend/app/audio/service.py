@@ -1,5 +1,5 @@
 import os
-from app.audio.helper import extract_feature
+from app.audio.helper import extract_feature, audio_classification_prediction_maping
 import random
 import tempfile
 
@@ -62,13 +62,14 @@ async def classify_audio_class(file: UploadFile):
     length_ms = len(audio)
 
     features = extract_feature(local_file_path)
-    print(features)
+    
 
     # Load the model
-    audio_classification_model(features)
-
-
-    print(f"Audio length: {length_ms} ms")
+    predicted_class = audio_classification_model(features)
+    return {
+        "class": predicted_class,
+    }
+    
 
 async def save_file(file: UploadFile):
     local_file_path = os.path.join("uploads", file.filename)
@@ -86,7 +87,6 @@ def audio_classification_model(features):
     model = load_model(model_path)
 
     pred_vector = np.argmax(model.predict(features), axis=-1)
-    print("The predicted class is:", pred_vector, '\n') 
-    
-
-    return np.array([0.5, 0.5]) # Dummy prediction for now
+    class_name = audio_classification_prediction_maping[pred_vector[0]]
+ 
+    return class_name

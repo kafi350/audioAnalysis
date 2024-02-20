@@ -9,7 +9,15 @@ def extract_feature(file_name):
 
 
 audio_classification_prediction_maping = {
-    0: "Positive",
-    1: "Negative",
-    2: "Neutral"
+    0: "Air Conditioner",
+    1: "Car Horn",
+    2: "Children Playing",
+    3: "Dog Bark",
+    4: "Drilling",
+    5: "Engine Idling",
+    6: "Gun Shot",
+    7: "Human Voice",
+    8: "Jackhammer",
+    9: "Siren",
+    10: "Street Music",
 }
