@@ -65,7 +65,15 @@ const AudioAnalysis ={
 			headers: {
 				Authorization: 'Bearer ' + get(token),
 			},
-		}),		
+		})
+		.then((response) => {
+			if (!response.ok) {
+				throw response;
+			}
+			serverError.set('');
+			return response.json();
+		})
+		.catch(errorHandler),		
 	classify: (formData) =>
 		fetch(`${BASE_URL}/audio/classify`, {
 			method: 'POST',
@@ -81,7 +89,23 @@ const AudioAnalysis ={
 			serverError.set('');
 			return response.json();
 		})
-		.catch(errorHandler),	
+		.catch(errorHandler),
+	emotionDetection: (formData) =>
+		fetch(`${BASE_URL}/audio/emotiondetection`, {
+			method: 'POST',
+			body: formData,
+			headers: {
+				Authorization: 'Bearer ' + get(token),
+			},
+		})
+		.then((response) => {
+			if (!response.ok) {
+				throw response;
+			}
+			serverError.set('');
+			return response.json();
+		})
+		.catch(errorHandler),
 };
 
 export default {

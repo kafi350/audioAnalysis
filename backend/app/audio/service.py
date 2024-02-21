@@ -1,5 +1,5 @@
 import os
-from app.audio.helper import extract_feature, audio_classification_prediction_maping, extract_feature_gender, get_features_gender_emotion
+from app.audio.helper import convert_class_to_emotion, emotion_detection_feature, extract_feature, audio_classification_prediction_maping, extract_feature_gender, get_features_gender_emotion
 import random
 import tempfile
 from app.audio.utils import create_model
@@ -11,6 +11,7 @@ import numpy as np
 from fastapi import UploadFile
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
+# import keras
 
 #this will create chunks of audio if audio is longer than 40 seconds
 def create_audio_chunks(file: UploadFile, taken_at: str):
@@ -39,24 +40,6 @@ def segment_audio_file(chunks):
         
     return segments
 
-def audio_classification(audio_file):
-    # Classify audio here
-    return "Positive" # or "Negative" or "Neutral" depending on the classification
-
-
-def predict_gender_emotion():
-    genders = ['male', 'female']
-    emotions = ['happy', 'sad', 'angry', 'neutral', 'surprised', 'scared', 'disgusted', 'contemptuous']
-
-    predicted_gender = random.choice(genders)
-    predicted_emotion = random.choice(emotions)
-    
-    return{
-        "gender": predicted_gender,
-        "emotion": predicted_emotion
-    }
-
-
 async def classify_audio_class(file: UploadFile):
     local_file_path = await save_file(file)   
     audio = AudioSegment.from_file(local_file_path, format=file.filename.split('.')[-1])
@@ -69,9 +52,20 @@ async def classify_audio_class(file: UploadFile):
 async def gender_detection(file: UploadFile):
     local_file_path = await save_file(file)   
     features = extract_feature_gender(local_file_path, mel=True).reshape(1, -1)
-    return gender_detection_model(features)
+
+    prediction = gender_detection_model(features)
+
+    return {
+        "prediction": prediction[0],
+        "male": prediction[1],
+        "female": prediction[2]
+
+    }
    
-    
+async def emotion_detection(file: UploadFile):
+    local_file_path = await save_file(file)   
+    features = get_features_gender_emotion(local_file_path)
+    prediction = emotion_detection_model(features)   
 
 async def save_file(file: UploadFile):
     local_file_path = os.path.join("uploads", file.filename)
@@ -104,8 +98,20 @@ def gender_detection_model(features):
     male_prob = model.predict(features)[0][0]
     female_prob = 1 - male_prob
     gender = "male" if male_prob > female_prob else "female"
-    
-    print("Result:", gender)
-    print(f"Probabilities:     Male: {male_prob*100:.2f}%    Female: {female_prob*100:.2f}%")
+    male = male_prob*100    
+    female = female_prob*100
+    return gender, male, female
 
-    return { "prediction": gender, "Male": male_prob, "Female": female_prob}
+def emotion_detection_model(features):
+    model_path = "app/machine_models/emotion_female_detection_v1.h5"
+    model_name = 'Emotion_Voice_Detection_Model.h5'
+    model = load_model(model_path)
+    model.summary()
+    predictions = model.predict(features)
+    print(predictions)
+    predictions = np.argmax(predictions, axis=-1)
+    print(predictions)
+    # print( "Prediction is", " ", convert_class_to_emotion(predictions))
+
+
+    

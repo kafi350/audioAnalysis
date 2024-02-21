@@ -7,6 +7,8 @@
     let audioSegments = [];
     let audioSrc = null;
     let classification = Array(audioSegments.length).fill('');
+    let genderDetection = Array(audioSegments.length).fill('');
+    let     genderPercentage = Array(audioSegments.length).fill('');
 
     function handleFileChange(event) {
         audioSegments = [];
@@ -78,6 +80,31 @@
             client.AudioAnalysis.genderDetection(formData)
                 .then(data => {
                     console.log(data);
+                    genderDetection[i] = data.prediction;
+                    genderPercentage[i] = data.male;
+                })
+                .catch(error => {
+                    console.log(error);
+                });
+        }
+
+        function handleEmotionDetection(audioSrc, i){
+            let byteString = atob(audioSrc.split(',')[1]);
+            let mimeString = audioSrc.split(',')[0].split(':')[1].split(';')[0];
+            let arrayBuffer = new ArrayBuffer(byteString.length);
+            let uint8Array = new Uint8Array(arrayBuffer);
+            for (let i = 0; i < byteString.length; i++) {
+                uint8Array[i] = byteString.charCodeAt(i);
+            }
+            let blob = new Blob([uint8Array], { type: mimeString });
+            let file = new File([blob], "audio.wav", { type: blob.type });
+            let formData = new FormData();
+            formData.append("file", file, file.name);
+            // formData.append("gender", gender);
+            client.AudioAnalysis.emotionDetection(formData)
+                .then(data => {
+                    console.log(data);
+                    // classification[i] = data.prediction;
                 })
                 .catch(error => {
                     console.log(error);
@@ -119,8 +146,10 @@
                     </audio>
                     <p>Audio Segments {i + 1}</p>
                     <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleClassification(audioSrc, i)}>Classification</button>
-                    <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleGenderDetection(audioSrc, i)}>Classification</button>
+                    <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleGenderDetection(audioSrc, i)}>Gender Detection</button>
+                    <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleEmotionDetection(audioSrc, i)}>Emotion Detection</button>
                     <p>The classification result: {classification[i]}</p>
+                    <p>Gender Classified: {genderDetection[i]}, Male: {genderPercentage[i]}, Female: {100-genderPercentage[i]}</p>
                 </div>
                 {/each}
             {/if}

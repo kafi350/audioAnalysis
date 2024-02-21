@@ -1,6 +1,7 @@
 import librosa
 import numpy as np
 
+
 def extract_feature(file_name):
     audio_data, sample_rate = librosa.load(file_name, sr=None) 
     fea = librosa.feature.mfcc(y=audio_data, sr=sample_rate, n_mfcc=50)
@@ -117,3 +118,31 @@ audio_classification_prediction_maping = {
     9: "Siren",
     10: "Street Music",
 }
+
+
+def emotion_detection_feature(filepath):
+    print(filepath)
+    data, sampling_rate = librosa.load(filepath)
+    mfccs = np.mean(librosa.feature.mfcc(y=data, sr=sampling_rate, n_mfcc=40).T, axis=0)
+    x = np.expand_dims(mfccs, axis=1)
+    x = np.expand_dims(x, axis=0)
+    return x
+    
+def convert_class_to_emotion(pred):
+        """
+        Method to convert the predictions (int) into human readable strings.
+        """
+        
+        label_conversion = {'0': 'neutral',
+                            '1': 'calm',
+                            '2': 'happy',
+                            '3': 'sad',
+                            '4': 'angry',
+                            '5': 'fearful',
+                            '6': 'disgust',
+                            '7': 'surprised'}
+
+        for key, value in label_conversion.items():
+            if int(key) == pred:
+                label = value
+        return label
