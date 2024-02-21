@@ -65,6 +65,8 @@ async def gender_detection(file: UploadFile):
 async def emotion_detection(file: UploadFile):
     local_file_path = await save_file(file)   
     features = get_features_gender_emotion(local_file_path)
+    for feature in features:
+        print(feature)
     prediction = emotion_detection_model(features)   
 
 async def save_file(file: UploadFile):
