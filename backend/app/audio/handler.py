@@ -21,7 +21,7 @@ def upload_audio_api(file: UploadFile = File(...),
         buffer.seek(0)
         segment_base64 = base64.b64encode(buffer.read()).decode('utf-8')
         segmented_audios_base64.append(segment_base64)
-
+    
     return {
         "audio_count": len(segmented_audios),
         "segmented_audios": segmented_audios_base64,
@@ -37,5 +37,4 @@ async def gender_detection_api(file: UploadFile = File(...)):
 
 @router.post("/emotiondetection", status_code=201)
 async def emotion_detection_api(file: UploadFile = File(...)):
-    print(file)
     return await emotion_detection(file)

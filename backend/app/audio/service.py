@@ -3,6 +3,7 @@ from app.audio.helper import convert_class_to_emotion, emotion_detection_feature
 import random
 import tempfile
 from app.audio.utils import create_model
+from app.audio.model import create_emotion_recognition_model, predict_emotion_from_file
 
 
 
@@ -24,7 +25,7 @@ def create_audio_chunks(file: UploadFile, taken_at: str):
         segments = segment_audio_file(chunks)
         return segments
 
-    segments = segment_audio_file([audio])
+    segments = [audio]
     
     return segments
 
@@ -63,11 +64,20 @@ async def gender_detection(file: UploadFile):
     }
    
 async def emotion_detection(file: UploadFile):
-    local_file_path = await save_file(file)   
-    features = get_features_gender_emotion(local_file_path)
-    for feature in features:
-        print(feature)
-    prediction = emotion_detection_model(features)   
+    local_file_path = await save_file(file)  
+    step = 1 # in sec
+    sample_rate = 16000 # in kHz
+    local_model_path = "app/machine_models/audio.hdf5"
+
+    _model, _emotion = create_emotion_recognition_model(local_model_path)
+
+
+    emotions, timestamp = predict_emotion_from_file(local_file_path, _model, _emotion, chunk_step=step*sample_rate)
+
+    return {
+        "emotions": emotions[0],
+        "timestamp": timestamp[0]
+    }
 
 async def save_file(file: UploadFile):
     local_file_path = os.path.join("uploads", file.filename)

@@ -5,10 +5,11 @@
 
     let audioFile = null;
     let audioSegments = [];
+    let audioCount = 0;
     let audioSrc = null;
     let classification = Array(audioSegments.length).fill('');
     let genderDetection = Array(audioSegments.length).fill('');
-    let     genderPercentage = Array(audioSegments.length).fill('');
+    let genderPercentage = Array(audioSegments.length).fill('');
 
     function handleFileChange(event) {
         audioSegments = [];
@@ -35,6 +36,7 @@
                     audioSegments = data.segmented_audios.map(audioBase64 => {
                         return "data:audio/wav;base64," + audioBase64;
                     });
+                    audioCount = data.audio_count;
                     
                 })
                 .catch(error => {
@@ -133,8 +135,10 @@
             <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleUpload}>Upload</button>
         </div>
 
+        
+
         <section>
-            {#if audioSegments.length > 0}
+            {#if audioCount > 0}
                 <h2>Segments</h2>
                 <p>Click on the audio to play</p>
                 
@@ -152,6 +156,9 @@
                     <p>Gender Classified: {genderDetection[i]}, Male: {genderPercentage[i]}, Female: {100-genderPercentage[i]}</p>
                 </div>
                 {/each}
+            {:else}
+                <p>No audio segments</p>
+                <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleClassification(audioSrc, 0)}>Classification</button>
             {/if}
 
             
