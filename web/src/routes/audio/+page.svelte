@@ -158,7 +158,7 @@
                 {/each}
             {:else}
                 <p>No audio segments</p>
-                <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleClassification(audioSrc, 0)}>Classification</button>
+                <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleClassification(audioSrc, 0)}>Classification Audio</button>
             {/if}
 
             
