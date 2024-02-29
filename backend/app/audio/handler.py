@@ -2,7 +2,7 @@ import base64
 import io
 from datetime import datetime
 from app.audio.api_model import AudioRequest
-from app.audio.service import classify_audio_class, create_audio_chunks, emotion_detection, gender_detection, segment_audio_file
+from app.audio.service import classify_audio_class, create_audio_chunks, emotion_detection, fake_audio, gender_detection, segment_audio_file
 
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
 
@@ -38,3 +38,7 @@ async def gender_detection_api(file: UploadFile = File(...)):
 @router.post("/emotiondetection", status_code=201)
 async def emotion_detection_api(file: UploadFile = File(...)):
     return await emotion_detection(file)
+
+@router.post("/fakeaudio", status_code=201)
+async def fake_audio_api(file: UploadFile = File(...)):
+    return await fake_audio(file)

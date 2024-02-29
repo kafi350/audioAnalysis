@@ -79,6 +79,14 @@ async def emotion_detection(file: UploadFile):
         "timestamp": timestamp[0]
     }
 
+def fake_audio(file: UploadFile):
+    local_file_path = save_file(file)
+    return {
+        "fake": random.choice([True, False])
+    }
+      
+    
+
 async def save_file(file: UploadFile):
     local_file_path = os.path.join("uploads", file.filename)
 
@@ -120,10 +128,7 @@ def emotion_detection_model(features):
     model = load_model(model_path)
     model.summary()
     predictions = model.predict(features)
-    print(predictions)
     predictions = np.argmax(predictions, axis=-1)
-    print(predictions)
-    # print( "Prediction is", " ", convert_class_to_emotion(predictions))
-
+   
 
     
