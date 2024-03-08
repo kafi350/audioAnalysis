@@ -3,8 +3,8 @@ from app.audio.helper import convert_class_to_emotion, emotion_detection_feature
 import random
 import tempfile
 from app.audio.utils import create_model
-from app.audio.model import create_emotion_recognition_model, predict_emotion_from_file
-
+from app.audio.model import create_emotion_recognition_model, extract_features_fake_audio, predict_emotion_from_file
+from sklearn.preprocessing import StandardScaler
 
 
 from tensorflow.keras.models import load_model
@@ -79,11 +79,33 @@ async def emotion_detection(file: UploadFile):
         "timestamp": timestamp[0]
     }
 
-def fake_audio(file: UploadFile):
-    local_file_path = save_file(file)
-    return {
-        "fake": random.choice([True, False])
-    }
+async def fake_audio(file: UploadFile):
+
+    print("Fake audio detection")
+    local_file_path = 'uploads/audio.wav'
+    local_model_path = "app/machine_models/fake_audio.h5"
+    scaler = StandardScaler()
+    features = extract_features_fake_audio(local_file_path)
+    print(features.shape)
+    features = features.reshape(1, -1)
+    print(features.shape)
+    features = scaler.fit_transform(features)
+    features = np.expand_dims(features, axis=2)
+    print(features.shape)
+
+    model = load_model(local_model_path)
+    prediction = model.predict(features)
+    binary_predictions = (prediction).astype(int)
+    print(binary_predictions[0][0])
+
+    if binary_predictions[0][0] == 1:
+        return {
+            "prediction": "fake"
+        }
+    else:
+        return {
+            "prediction": "real"
+        }
       
     
 
@@ -109,11 +131,9 @@ def audio_classification_model(features):
 
 
 def gender_detection_model(features):
-    
     model = create_model()
     # load the saved/trained weights
     model.load_weights("app/machine_models/model.h5")
-    
     # predict the gender!
     male_prob = model.predict(features)[0][0]
     female_prob = 1 - male_prob

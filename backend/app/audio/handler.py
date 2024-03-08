@@ -41,4 +41,5 @@ async def emotion_detection_api(file: UploadFile = File(...)):
 
 @router.post("/fakeaudio", status_code=201)
 async def fake_audio_api(file: UploadFile = File(...)):
+    print(file)
     return await fake_audio(file)

@@ -113,6 +113,28 @@
                 });
         }
 
+        function handleForensicDetection(audioSrc, i){
+            let byteString = atob(audioSrc.split(',')[1]);
+            let mimeString = audioSrc.split(',')[0].split(':')[1].split(';')[0];
+            let arrayBuffer = new ArrayBuffer(byteString.length);
+            let uint8Array = new Uint8Array(arrayBuffer);
+            for (let i = 0; i < byteString.length; i++) {
+                uint8Array[i] = byteString.charCodeAt(i);
+            }
+            let blob = new Blob([uint8Array], { type: mimeString });
+            let file = new File([blob], "audio.wav", { type: blob.type });
+            let formData = new FormData();
+            formData.append("file", file, file.name);
+            client.AudioAnalysis.forensicDetection(formData)
+                .then(data => {
+                    console.log(data);
+                    // classification[i] = data.prediction;
+                })
+                .catch(error => {
+                    console.log(error);
+                });
+        }
+
 
     </script>
 
@@ -152,6 +174,7 @@
                     <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleClassification(audioSrc, i)}>Classification</button>
                     <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleGenderDetection(audioSrc, i)}>Gender Detection</button>
                     <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleEmotionDetection(audioSrc, i)}>Emotion Detection</button>
+                    <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleForensicDetection(audioSrc, i)}>Forensic Detection</button>
                     <p>The classification result: {classification[i]}</p>
                     <p>Gender Classified: {genderDetection[i]}, Male: {genderPercentage[i]}, Female: {100-genderPercentage[i]}</p>
                 </div>

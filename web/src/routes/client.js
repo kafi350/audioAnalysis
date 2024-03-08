@@ -106,6 +106,22 @@ const AudioAnalysis ={
 			return response.json();
 		})
 		.catch(errorHandler),
+	forensicDetection : (formData) =>
+		fetch(`${BASE_URL}/audio/fakeaudio`, {
+			method: 'POST',
+			body: formData,
+			headers: {
+				Authorization: 'Bearer ' + get(token),
+			},
+		})
+		.then((response) => {
+			if (!response.ok) {
+				throw response;
+			}
+			serverError.set('');
+			return response.json();
+		})
+		.catch(errorHandler),	
 };
 
 export default {
