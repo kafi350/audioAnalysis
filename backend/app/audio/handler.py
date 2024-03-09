@@ -3,6 +3,9 @@ import io
 from datetime import datetime
 from app.audio.api_model import AudioRequest
 from app.audio.service import classify_audio_class, create_audio_chunks, emotion_detection, fake_audio, gender_detection, segment_audio_file
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.io import wavfile
 
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
 
@@ -10,21 +13,38 @@ router = APIRouter(prefix="/audio")
      
     
 @router.post("/upload", status_code=201)
-def upload_audio_api(file: UploadFile = File(...),
+async def upload_audio_api(file: UploadFile = File(...),
     taken_at: str = Form(...)):
-    segmented_audios = create_audio_chunks(file, taken_at)
-
+    segmented_audios, segmented_regions, original_waveform = await create_audio_chunks(file, taken_at)
+    
     segmented_audios_base64 = []
+    waveform_images_base64 = []
     for segment in segmented_audios:
         buffer = io.BytesIO()
         segment.export(buffer, format="wav")
         buffer.seek(0)
         segment_base64 = base64.b64encode(buffer.read()).decode('utf-8')
         segmented_audios_base64.append(segment_base64)
+
+        # Generate waveform plot
+        buffer.seek(0)
+        sample_rate, data = wavfile.read(buffer)
+        plt.figure(figsize=(6, 4))
+        plt.plot(data)
+        plt.savefig('waveform.png')
+
+        # Encode waveform image to base64
+        with open('waveform.png', 'rb') as img_file:
+            waveform_image_base64 = base64.b64encode(img_file.read()).decode('utf-8')
+        waveform_images_base64.append(waveform_image_base64)
+
     
     return {
+        "original_waveform": original_waveform,
         "audio_count": len(segmented_audios),
         "segmented_audios": segmented_audios_base64,
+        "waveform_images": waveform_images_base64,
+        "segmented_regions": segmented_regions
     }
 
 @router.post("/classify", status_code=201)

@@ -1,7 +1,8 @@
+import base64
 import os
-from app.audio.helper import convert_class_to_emotion, emotion_detection_feature, extract_feature, audio_classification_prediction_maping, extract_feature_gender, get_features_gender_emotion
-import random
 import tempfile
+from app.audio.helper import convert_class_to_emotion, emotion_detection_feature, extract_feature, audio_classification_prediction_maping, extract_feature_gender, get_features_gender_emotion
+
 from app.audio.utils import create_model
 from app.audio.model import create_emotion_recognition_model, extract_features_fake_audio, predict_emotion_from_file
 from sklearn.preprocessing import StandardScaler
@@ -13,21 +14,43 @@ from fastapi import UploadFile
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
 # import keras
+import auditok
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.io import wavfile
 
 #this will create chunks of audio if audio is longer than 40 seconds
-def create_audio_chunks(file: UploadFile, taken_at: str):
+async def create_audio_chunks(file: UploadFile, taken_at: str):
     audio = AudioSegment.from_file(file.file, format=file.filename.split('.')[-1])
     length_ms = len(audio)
-    print(f"Audio length: {length_ms} ms")
-    if length_ms > 40000:
-        # Divide audio into 40-second chunks
-        chunks = [audio[i:i+40000] for i in range(0, length_ms, 40000)]
-        segments = segment_audio_file(chunks)
-        return segments
-
-    segments = [audio]
     
-    return segments
+    audio.export("uploads/output.wav", format="wav")
+    # New code
+    sample_rate, data = wavfile.read("uploads/output.wav")
+    plt.figure(figsize=(6, 4))
+    plt.plot(data)
+    plt.savefig('uploads/original_waveform.png')
+    with open('uploads/original_waveform.png', 'rb') as img_file:
+        waveform_image_base64 = base64.b64encode(img_file.read()).decode('utf-8')
+        
+    
+    audio_regions = auditok.split(
+        "uploads/output.wav",
+        min_dur=0.2,     # minimum duration of a valid audio event in seconds
+        max_dur=4,       # maximum duration of an event
+        max_silence=0.3, # maximum duration of tolerated continuous silence within an event
+        energy_threshold=55 # threshold of detection
+    ) # or just region.splitp()
+    segments = []
+    segmented_regions = []
+    for i, r in enumerate(audio_regions):
+        segmented_regions.append(": {r.meta.start:.3f}s -- {r.meta.end:.3f}s".format(i=i, r=r))
+        filename = r.save("uploads/region_{meta.start:.3f}-{meta.end:.3f}.wav")
+        audio = AudioSegment.from_file(filename, format="wav")
+        segments.append(audio)
+        os.remove(filename)
+
+    return segments, segmented_regions, waveform_image_base64
 
 #this will segment the audios based on the silence parts (using pydub)
 # so it will create two segments if there is a silence part in the audio
