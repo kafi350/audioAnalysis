@@ -1,12 +1,27 @@
 import librosa
 import numpy as np
-
+import matplotlib.pyplot as plt
+import librosa.display
+import io
+import base64
 
 def extract_feature(file_name):
     audio_data, sample_rate = librosa.load(file_name, sr=None) 
     fea = librosa.feature.mfcc(y=audio_data, sr=sample_rate, n_mfcc=50)
     scaled = np.mean(fea.T,axis=0)
-    return np.array([scaled])
+
+    plt.figure(figsize=(10, 4))
+    librosa.display.specshow(fea, x_axis='time')
+    plt.colorbar()
+    plt.title('MFCC')
+    plt.tight_layout()
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+
+    base64_image = base64.b64encode(buf.read()).decode('utf-8')
+
+    return np.array([scaled]), base64_image
 
 
 

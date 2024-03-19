@@ -14,6 +14,7 @@
     let audioSegmentedRegions = [];
     let originalWavForm = null;
     let classification = Array(audioSegments.length).fill('');
+    let mfccFeature = Array(audioSegments.length).fill('');
     let genderDetection = Array(audioSegments.length).fill('');
     let genderPercentage = Array(audioSegments.length).fill('');
     let emotionDetection = Array(audioSegments.length).fill('');
@@ -74,6 +75,7 @@
                 .then(data => {
                     console.log(data);
                     classification[i] = data.class;
+                    mfccFeature[i] = "data:image/png;base64," + data.mfcc;
                 })
                 .catch(error => {
                     console.log(error);
@@ -197,21 +199,31 @@
                             <Carousel>
                                 {#each audioSegments as audioSrc, i (i)}
                                 <div class="card content-center bg-white rounded-lg shadow-md overflow-hidden mx-auto" style="max-width: 500px;">
-                                        <p class="text-xl">Segmentation {i + 1}  {audioSegmentedRegions[i]} </p>
+                                        <p class="text-xl">Segmentation {i + 1} : Start - {audioSegmentedRegions[i].start}, End - {audioSegmentedRegions[i].end} </p>
                                         <audio controls>
                                             <source src={audioSrc} type="audio/wav">
                                             Your browser does not support the audio element.
                                         </audio>
                                         
-                                        <img src={wavePlotImages[i]} alt="Waveform" class="w-full md:w-1/2 lg:w-1/3 object-contain">
-
-                                        <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleClassification(audioSrc, i)}>Classification</button>
-                                        <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleGenderDetection(audioSrc, i)}>Gender Detection</button>
-                                        <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleEmotionDetection(audioSrc, i)}>Emotion Detection</button>
-                                        <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleForensicDetection(audioSrc, i)}>Forensic Detection</button>
+                                        <img src={wavePlotImages[i]} alt="Waveform" class="w-50 object-contain">
+                                        {#if audioSegmentedRegions[i]}
+                                            <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleClassification(audioSrc, i)}>Classification</button>
+                                        {/if}                                        
+                                        
+                                        {#if classification[i] == 'Human Voice'}
+                                            <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleGenderDetection(audioSrc, i)}>Gender Detection</button>
+                                            {#if genderDetection[i]}
+                                            <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleEmotionDetection(audioSrc, i)}>Emotion Detection</button>
+                                            {/if}
+                                            <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleForensicDetection(audioSrc, i)}>Forensic Detection</button>
+                                        
+                                        {/if}
                                         
                                         {#if classification[i]}
                                             <p>Aduio Classification: {classification[i]}, Data : MFDT 4</p>
+
+                                            <p>MFCC Plot</p>
+                                            <img src={mfccFeature[i]} alt="MFCC" class="w-50 object-contain">
                                         {/if}
                                         {#if genderDetection[i]}
                                             <p>Gender Classified: {genderDetection[i]}, Male: {genderPercentage[i]}, Female: {100-genderPercentage[i]}, Data : MFDT3 & MFDT 5</p>
@@ -232,9 +244,7 @@
                             </Carousel>
                         {:else}
                             <p class="text-center">No audio segments</p>
-                            <div class="text-center">
-                                <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleClassification(audioSrc, 0)}>Classification Audio</button>
-                            </div>
+                            
                         {/if}
                     </section>
                 </div>

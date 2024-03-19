@@ -1,60 +1,46 @@
 import base64
 import os
 import tempfile
+import librosa
+import numpy as np
 from app.audio.helper import convert_class_to_emotion, emotion_detection_feature, extract_feature, audio_classification_prediction_maping, extract_feature_gender, get_features_gender_emotion
 
 from app.audio.utils import create_model
 from app.audio.model import create_emotion_recognition_model, extract_features_fake_audio, predict_emotion_from_file
 from sklearn.preprocessing import StandardScaler
-
+from sklearn.cluster import KMeans
 
 from tensorflow.keras.models import load_model
-import numpy as np
 from fastapi import UploadFile
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
 # import keras
 import auditok
 import matplotlib.pyplot as plt
-import numpy as np
 from scipy.io import wavfile
+
+
+
 
 #this will create chunks of audio if audio is longer than 40 seconds
 async def create_audio_chunks(file: UploadFile, taken_at: str):
     audio = AudioSegment.from_file(file.file, format=file.filename.split('.')[-1])
     length_ms = len(audio)
-    
     audio.export("uploads/output.wav", format="wav")
-    # New code
     sample_rate, data = wavfile.read("uploads/output.wav")
     plt.figure(figsize=(6, 4))
     plt.plot(data)
     plt.savefig('uploads/original_waveform.png')
     with open('uploads/original_waveform.png', 'rb') as img_file:
         waveform_image_base64 = base64.b64encode(img_file.read()).decode('utf-8')
-        
-    
-    audio_regions = auditok.split(
-        "uploads/output.wav",
-        min_dur=0.2,     # minimum duration of a valid audio event in seconds
-        max_dur=4,       # maximum duration of an event
-        max_silence=0.3, # maximum duration of tolerated continuous silence within an event
-        energy_threshold=55 # threshold of detection
-    ) # or just region.splitp()
-    segments = []
-    segmented_regions = []
-    for i, r in enumerate(audio_regions):
-        segmented_regions.append(": {r.meta.start:.3f}s -- {r.meta.end:.3f}s".format(i=i, r=r))
-        filename = r.save("uploads/region_{meta.start:.3f}-{meta.end:.3f}.wav")
-        audio = AudioSegment.from_file(filename, format="wav")
-        segments.append(audio)
-        os.remove(filename)
 
+    optimal_hop_sizes = compute_optimal_hop_size('uploads/output.wav')
+    averave_hop_size = int(np.mean(optimal_hop_sizes))
+    
+    segmented_regions, segments = energy_based_vad('uploads/output.wav', frame_size=2048, hop_length=averave_hop_size, energy_threshold=0.01)
+    
     return segments, segmented_regions, waveform_image_base64
 
-#this will segment the audios based on the silence parts (using pydub)
-# so it will create two segments if there is a silence part in the audio
-# one with the speech and one with the silence
 def segment_audio_file(chunks):
     segments = []
     for chunk in chunks:
@@ -64,13 +50,85 @@ def segment_audio_file(chunks):
         
     return segments
 
+def energy_based_vad(audio_path, frame_size, hop_length, energy_threshold):
+    y, sr = librosa.load(audio_path)
+    ste = np.power(y, 2)
+    ste = librosa.feature.rms(y=y, frame_length=frame_size, hop_length=hop_length, center=True)
+    mask = ste > energy_threshold
+    segments = []
+    start_sample = 0
+    for i in range(1, len(mask[0])):
+        if mask[0][i] != mask[0][i-1]:
+            end_sample = i * hop_length
+            if mask[0][i-1] == True:
+                segments.append((start_sample, end_sample))
+            start_sample = end_sample
+
+    segments_time = [(start / sr, end / sr) for start, end in segments]
+    audio = AudioSegment.from_wav(audio_path)
+    segmented_audios = []
+    segmented_time = []
+    for i, (start, end) in enumerate(segments_time):
+        segment_audio = audio[start * 1000:end * 1000]  # pydub works in milliseconds
+        filename = f"uploads/segment_{start:.3f}-{end:.3f}.wav"
+        segmented_time.append({'start': start, 'end': end})
+        segment_audio.export(filename, format="wav")
+        segmented_audios.append(segment_audio)
+
+    return segmented_time, segmented_audios
+
+
+def split_audio(audio_path, n_clusters):
+    y, sr = librosa.load(audio_path)
+
+    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
+    mfcc = mfcc.T
+
+    kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(mfcc)
+
+    segments = kmeans.labels_
+    frame_length = 512  # Default frame length for librosa.feature.mfcc
+    hop_length = 512  # Default hop length for librosa.feature.mfcc
+    segment_times = [(i * hop_length / sr, (i + np.count_nonzero(segments == i)) * hop_length / sr) for i in range(n_clusters)]
+
+    return segment_times
+
+def compute_optimal_hop_size(audio_path):
+    y, sr = librosa.load(audio_path)
+    frame_length = 2048
+    hop_length = 512
+    
+    ste = librosa.feature.rms(y=y, frame_length=frame_length, hop_length=hop_length)
+    
+    energy_variability = np.diff(ste[0])
+   
+    adaptive_hop_sizes = []
+    threshold = np.median(energy_variability) * 1.5
+    
+    for variability in energy_variability:
+        if abs(variability) > threshold:
+            adaptive_hop_sizes.append(hop_length // 2)
+        else:
+            adaptive_hop_sizes.append(hop_length * 2)
+    min_hop = min(adaptive_hop_sizes)
+    max_hop = max(adaptive_hop_sizes)
+
+    if min_hop != max_hop:
+        normalized_hop_sizes = [(hop - min_hop) / (max_hop - min_hop) * (512 - 128) + 128 for hop in adaptive_hop_sizes]
+    else:
+        normalized_hop_sizes = [hop_length for hop in adaptive_hop_sizes] 
+
+    
+    return normalized_hop_sizes
+
 async def classify_audio_class(file: UploadFile):
     local_file_path = await save_file(file)   
     audio = AudioSegment.from_file(local_file_path, format=file.filename.split('.')[-1])
-    features = extract_feature(local_file_path)
+    features, base64_mfcc = extract_feature(local_file_path)
     predicted_class = audio_classification_model(features)
     return {
         "class": predicted_class,
+        "mfcc": base64_mfcc
     }
 
 async def gender_detection(file: UploadFile):
@@ -123,11 +181,11 @@ async def fake_audio(file: UploadFile):
 
     if binary_predictions[0][0] == 1:
         return {
-            "prediction": "fake"
+            "prediction": "Spoofed"
         }
     else:
         return {
-            "prediction": "real"
+            "prediction": "Bonafide"
         }
       
     
@@ -160,7 +218,7 @@ def gender_detection_model(features):
     # predict the gender!
     male_prob = model.predict(features)[0][0]
     female_prob = 1 - male_prob
-    gender = "male" if male_prob > female_prob else "female"
+    gender = "Male" if male_prob > female_prob else "Female"
     male = male_prob*100    
     female = female_prob*100
     return gender, male, female
