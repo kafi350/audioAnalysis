@@ -37,7 +37,7 @@ async def create_audio_chunks(file: UploadFile, taken_at: str):
     optimal_hop_sizes = compute_optimal_hop_size('uploads/output.wav')
     averave_hop_size = int(np.mean(optimal_hop_sizes))
     
-    segmented_regions, segments = energy_based_vad('uploads/output.wav', frame_size=2048, hop_length=averave_hop_size, energy_threshold=0.01)
+    segmented_regions, segments = energy_based_vad('uploads/output.wav', frame_size=2048, hop_length=averave_hop_size, energy_threshold=0.001)
     
     return segments, segmented_regions, waveform_image_base64
 

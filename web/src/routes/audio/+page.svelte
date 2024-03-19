@@ -16,7 +16,8 @@
     let classification = Array(audioSegments.length).fill('');
     let mfccFeature = Array(audioSegments.length).fill('');
     let genderDetection = Array(audioSegments.length).fill('');
-    let genderPercentage = Array(audioSegments.length).fill('');
+    let genderPercentageMale = Array(audioSegments.length).fill('');
+    let genderPercentageFemale = Array(audioSegments.length).fill('');
     let emotionDetection = Array(audioSegments.length).fill('');
     let forensicDetection = Array(audioSegments.length).fill('');
 
@@ -98,7 +99,8 @@
                 .then(data => {
                     console.log(data);
                     genderDetection[i] = data.prediction;
-                    genderPercentage[i] = data.male;
+                    genderPercentageMale[i] = (data.male / 100).toFixed(3);
+                    genderPercentageFemale[i] = (data.female / 100).toFixed(3);
                 })
                 .catch(error => {
                     console.log(error);
@@ -226,7 +228,7 @@
                                             <img src={mfccFeature[i]} alt="MFCC" class="w-50 object-contain">
                                         {/if}
                                         {#if genderDetection[i]}
-                                            <p>Gender Classified: {genderDetection[i]}, Male: {genderPercentage[i]}, Female: {100-genderPercentage[i]}, Data : MFDT3 & MFDT 5</p>
+                                            <p>Gender Classified: {genderDetection[i]}, Male: {genderPercentageMale[i]}, Female: {genderPercentageFemale[i]}, Data : MFDT3 & MFDT 5</p>
                                         {/if}
                                         {#if emotionDetection[i]}
                                             <p>Emotion Classified: {emotionDetection[i]}, Data : MFDT3 & MFDT 5</p>
