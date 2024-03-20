@@ -107,7 +107,7 @@
                 });
         }
 
-        function handleEmotionDetection(audioSrc, i){
+        function handleEmotionDetection(audioSrc, i, gender){
             let byteString = atob(audioSrc.split(',')[1]);
             let mimeString = audioSrc.split(',')[0].split(':')[1].split(';')[0];
             let arrayBuffer = new ArrayBuffer(byteString.length);
@@ -119,7 +119,7 @@
             let file = new File([blob], "audio.wav", { type: blob.type });
             let formData = new FormData();
             formData.append("file", file, file.name);
-            // formData.append("gender", gender);
+            formData.append("gender", gender);
             client.AudioAnalysis.emotionDetection(formData)
                 .then(data => {
                     console.log(data);
@@ -215,7 +215,7 @@
                                         {#if classification[i] == 'Human Voice'}
                                             <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleGenderDetection(audioSrc, i)}>Gender Detection</button>
                                             {#if genderDetection[i]}
-                                            <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleEmotionDetection(audioSrc, i)}>Emotion Detection</button>
+                                            <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleEmotionDetection(audioSrc, i, genderDetection[i])}>Emotion Detection</button>
                                             {/if}
                                             <button class="rounded bg-emerald-700 px-3 py-1 font-bold text-white hover:bg-emerald-600" on:click={handleForensicDetection(audioSrc, i)}>Forensic Detection</button>
                                         

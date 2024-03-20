@@ -56,8 +56,8 @@ async def gender_detection_api(file: UploadFile = File(...)):
     return await gender_detection(file)
 
 @router.post("/emotiondetection", status_code=201)
-async def emotion_detection_api(file: UploadFile = File(...)):
-    return await emotion_detection(file)
+async def emotion_detection_api(file: UploadFile = File(...), gender: str = Form(...)):
+    return await emotion_detection(file, gender)
 
 @router.post("/fakeaudio", status_code=201)
 async def fake_audio_api(file: UploadFile = File(...)):

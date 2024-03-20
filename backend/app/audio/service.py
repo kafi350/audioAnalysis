@@ -70,7 +70,7 @@ def energy_based_vad(audio_path, frame_size, hop_length, energy_threshold):
     segmented_time = []
     for i, (start, end) in enumerate(segments_time):
         segment_audio = audio[start * 1000:end * 1000]  # pydub works in milliseconds
-        filename = f"uploads/segment_{start:.3f}-{end:.3f}.wav"
+        filename = f"uploads/segment_{i}.wav"
         segmented_time.append({'start': start, 'end': end})
         segment_audio.export(filename, format="wav")
         segmented_audios.append(segment_audio)
@@ -80,14 +80,11 @@ def energy_based_vad(audio_path, frame_size, hop_length, energy_threshold):
 
 def split_audio(audio_path, n_clusters):
     y, sr = librosa.load(audio_path)
-
     mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
     mfcc = mfcc.T
-
     kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(mfcc)
-
     segments = kmeans.labels_
-    frame_length = 512  # Default frame length for librosa.feature.mfcc
+    frame_length = 2048  # Default frame length for librosa.feature.mfcc
     hop_length = 512  # Default hop length for librosa.feature.mfcc
     segment_times = [(i * hop_length / sr, (i + np.count_nonzero(segments == i)) * hop_length / sr) for i in range(n_clusters)]
 
@@ -144,15 +141,12 @@ async def gender_detection(file: UploadFile):
 
     }
    
-async def emotion_detection(file: UploadFile):
+async def emotion_detection(file: UploadFile, gender: str):
     local_file_path = await save_file(file)  
     step = 1 # in sec
     sample_rate = 16000 # in kHz
-    local_model_path = "app/machine_models/audio.hdf5"
 
-    _model, _emotion = create_emotion_recognition_model(local_model_path)
-
-
+    _model, _emotion = create_emotion_recognition_model(gender)
     emotions, timestamp = predict_emotion_from_file(local_file_path, _model, _emotion, chunk_step=step*sample_rate)
 
     return {
@@ -161,23 +155,16 @@ async def emotion_detection(file: UploadFile):
     }
 
 async def fake_audio(file: UploadFile):
-
-    print("Fake audio detection")
     local_file_path = 'uploads/audio.wav'
     local_model_path = "app/machine_models/fake_audio.h5"
     scaler = StandardScaler()
     features = extract_features_fake_audio(local_file_path)
-    print(features.shape)
     features = features.reshape(1, -1)
-    print(features.shape)
     features = scaler.fit_transform(features)
     features = np.expand_dims(features, axis=2)
-    print(features.shape)
-
     model = load_model(local_model_path)
     prediction = model.predict(features)
     binary_predictions = (prediction).astype(int)
-    print(binary_predictions[0][0])
 
     if binary_predictions[0][0] == 1:
         return {
@@ -192,8 +179,6 @@ async def fake_audio(file: UploadFile):
 
 async def save_file(file: UploadFile):
     local_file_path = os.path.join("uploads", file.filename)
-
-    # Save the uploaded file to the local file
     data = await file.read()
     with open(local_file_path, 'wb') as f:
         f.write(data)
@@ -204,7 +189,6 @@ async def save_file(file: UploadFile):
 def audio_classification_model(features):
     model_path = "app/machine_models/audio_classify_v1.h5"
     model = load_model(model_path)
-
     pred_vector = np.argmax(model.predict(features), axis=-1)
     class_name = audio_classification_prediction_maping[pred_vector[0]]
  
@@ -212,10 +196,7 @@ def audio_classification_model(features):
 
 
 def gender_detection_model(features):
-    model = create_model()
-    # load the saved/trained weights
-    model.load_weights("app/machine_models/model.h5")
-    # predict the gender!
+    model = load_model('app/machine_models/gender_detection_v3.h5')
     male_prob = model.predict(features)[0][0]
     female_prob = 1 - male_prob
     gender = "Male" if male_prob > female_prob else "Female"
@@ -223,13 +204,7 @@ def gender_detection_model(features):
     female = female_prob*100
     return gender, male, female
 
-def emotion_detection_model(features):
-    model_path = "app/machine_models/emotion_female_detection_v1.h5"
-    model_name = 'Emotion_Voice_Detection_Model.h5'
-    model = load_model(model_path)
-    model.summary()
-    predictions = model.predict(features)
-    predictions = np.argmax(predictions, axis=-1)
+
    
 
     
