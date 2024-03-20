@@ -2,7 +2,7 @@
 setup:
 	@echo "Setting up..."
 	@python3.10 -m venv venv
-	@(. venv/bin/activate && pip install poetry && poetry install)
+	@(. venv/bin/activate && pip install poetry && poetry install && pip install -r requirements.txt)
 
 
 .PHONY: format
