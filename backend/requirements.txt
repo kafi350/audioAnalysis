@@ -71,10 +71,6 @@ pathspec==0.12.1
 pexpect==4.9.0
 pillow==10.2.0
 pkginfo==1.9.6
-platformdirs==4.2.0
-poetry==1.7.1
-poetry-core==1.8.1
-poetry-plugin-export==1.6.0
 pooch==1.8.0
 protobuf==4.25.3
 psycopg2-binary==2.9.9
