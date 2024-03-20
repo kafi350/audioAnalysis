@@ -1,4 +1,5 @@
 import base64
+import glob
 import os
 import tempfile
 import librosa
@@ -204,7 +205,10 @@ def gender_detection_model(features):
     female = female_prob*100
     return gender, male, female
 
-
+def delete_files_in_directory(directory):
+    files = glob.glob(f'{directory}/*')
+    for file in files:
+        os.remove(file)
    
 
     

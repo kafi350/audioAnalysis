@@ -1,8 +1,8 @@
 .PHONY: setup
 setup:
 	@echo "Setting up..."
-	@python3 -m venv venv
-	@(. venv/bin/activate && pip install poetry && poetry install)
+	@python3.10 -m venv venv
+	@(. venv/bin/activate && pip install -r requirements.txt)
 
 
 .PHONY: format
@@ -14,7 +14,7 @@ format:
 .PHONY: run
 run:
 	@echo "Running..."
-	@(. venv/bin/activate && poetry install && uvicorn app.server:app --reload)
+	@(. venv/bin/activate && uvicorn app.server:app --reload)
 
 .PHONY: poetry-to-requirements
 poetry-to-requirements:
